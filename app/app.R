@@ -20,7 +20,7 @@ airbnb <- airbnb@data[,-c(1,2)]
 airbnb<- subset(airbnb, bed_type != "Airbed")
 pdf(NULL)
 
-# fun icons for different bed types
+# Fun icons and colors for different bed types
 icons <- awesomeIconList(
   `Real Bed`= makeAwesomeIcon(icon = "bed", library = "fa", markerColor = "purple"),
   `Futon` = makeAwesomeIcon(icon = "bed", library = "fa", markerColor = "blue"),
@@ -129,7 +129,7 @@ server <- function(input, output){
     return (airbnb)
   })
     
-  #Reactive map---------------------------------------------------------------------
+  #Creating base layer---------------------------------------------------------------------
   output$LocationMap <- renderLeaflet({
     leaflet() %>%
       # creating Basemaps
@@ -143,13 +143,15 @@ server <- function(input, output){
   
   # Replace layer with room type-------------------------------------------
   observe({
+    
+      if(length(input$roomSelect)>0) {
       airbnbmap <- airbnbInput()
   
       room_palette<- colorFactor(palette = "Set1", domain = airbnbmap$room_type)
       
       leafletProxy("LocationMap", data = airbnbmap) %>%
       
-      clearGroup(group = "Room_type") %>%
+      clearGroup(group= "Room_type") %>%
       clearControls() %>%
       
       addCircles(data = airbnbmap,
@@ -163,16 +165,18 @@ server <- function(input, output){
                 values = airbnbmap$room_type, 
                 title = "Room_type",
                 group ="Room_type") 
+      }
   })
   
-  # Replace layer with locations by bed types-------------------------------------------
+  # Replace layer with by bed types-------------------------------------------
   observe({
+      if(length(input$BedSelect)>0) {
       airbnbmap <- airbnbInput()
       bed_palette<- colorFactor(palette = "Set1", domain = airbnbmap$bed_type)
       
       leafletProxy("LocationMap", data = airbnbmap) %>%
       clearGroup(group = "Bed_type") %>%
-      clearControls() %>%
+      clearControls() %>% 
       addAwesomeMarkers(data = airbnbmap,
                         icon = ~icons[bed_type],
                         popup = ~url,
@@ -182,6 +186,7 @@ server <- function(input, output){
                 values = airbnbmap$bed_type, 
                 title = "Bed_type",
                 group = "Bed_type")
+      }
   })
   
   #Two reactive information box--------------------------------------------------
@@ -209,6 +214,7 @@ server <- function(input, output){
   output$PriceBedType <- renderPlotly({
     ggplot(data = airbnbInput(), aes(x = bed_type, y= price, fill=bed_type)) + geom_violin()
   })
+
   
   
   #Entire Data table------------------------------------------------------------------
