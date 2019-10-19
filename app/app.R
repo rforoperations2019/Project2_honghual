@@ -129,7 +129,7 @@ server <- function(input, output){
     return (airbnb)
   })
     
-  #Creating base layer---------------------------------------------------------------------
+  # Creating map base layer---------------------------------------------------------------------
   output$LocationMap <- renderLeaflet({
     leaflet() %>%
       # creating Basemaps
@@ -141,19 +141,16 @@ server <- function(input, output){
                        overlayGroups = c("Room_type","Bed_type"))
   })
   
-  # Replace layer with room type-------------------------------------------
+  # When ser make room type selection update room type layer-------------------------------------------
   observe({
     
       if(length(input$roomSelect)>0) {
       airbnbmap <- airbnbInput()
-  
       room_palette<- colorFactor(palette = "Set1", domain = airbnbmap$room_type)
       
       leafletProxy("LocationMap", data = airbnbmap) %>%
-      
       clearGroup(group= "Room_type") %>%
       clearControls() %>%
-      
       addCircles(data = airbnbmap,
                  color = ~room_palette(room_type),
                  radius=25,
@@ -168,7 +165,7 @@ server <- function(input, output){
       }
   })
   
-  # Replace layer with by bed types-------------------------------------------
+  # when user make bed type selection update bed type layer -------------------------------------------
   observe({
       if(length(input$BedSelect)>0) {
       airbnbmap <- airbnbInput()
