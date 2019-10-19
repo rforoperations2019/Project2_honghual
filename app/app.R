@@ -64,13 +64,13 @@ sidebar <-dashboardSidebar(
 #Dashboard body------------------------------------------------------------------------------
 body <- dashboardBody(tabItems(
   
-  # Leaflet Map----------------------------------------------- 
+  # Leaflet Map page----------------------------------------------- 
   tabItem("map",
           title = "Map Airbnb Locations",
           leafletOutput("LocationMap")
   ),
   
-  #Room Type plotpage-------------------------------------------------
+  #Room Type plot page-------------------------------------------------
   tabItem("plot1",
           
           # Value Boxes--------------------------------------
