@@ -7,13 +7,26 @@ library(reshape2)
 library(dplyr)
 library(plotly)
 library(shinythemes)
+library(leaflet)
+library(leaflet.extras)
+library(rgdal)
+library(shinyjs)
+library(rgeos)
 
 
-# Load data and filter out information
+# Load data and remove miscelleanouse information
 airbnb<-readOGR("https://raw.githubusercontent.com/cameronmaske/geo-dc/master/datasets/airbnb/airbnb.geojson")
-airbnb <- airbnb@data[,-c(2,11)] 
+airbnb <- airbnb@data[,-c(1,2)] 
 airbnb<- subset(airbnb, bed_type != "Airbed")
 pdf(NULL)
+
+# fun icons for different bed types
+icons <- awesomeIconList(
+  `Real Bed`= makeAwesomeIcon(icon = "bed", library = "fa", markerColor = "purple"),
+  `Futon` = makeAwesomeIcon(icon = "bed", library = "fa", markerColor = "blue"),
+  `Sofa` = makeAwesomeIcon(icon = "bed", library = "fa", markerColor = "orange"),
+  `Pull-out Sofa` = makeAwesomeIcon(icon = "table", library = "fa", markerColor = "green")
+)
 
 #Dashboard header------------------------------------------------------------
 header <- dashboardHeader(title= "Airbnb Washington DC")
@@ -125,14 +138,14 @@ server <- function(input, output){
       setView(-77.03,38.91,11) %>%
       # Layers control
       addLayersControl(baseGroups = c("Toner", "Terrain"),
-                       overlayGroups = c("Room_type","Locations"))
+                       overlayGroups = c("Room_type","Bed_type"))
   })
   
   # Replace layer with room type-------------------------------------------
   observe({
       airbnbmap <- airbnbInput()
   
-      room_palette<- colorFactor(palette = "Set2", domain = airbnbmap$room_type)
+      room_palette<- colorFactor(palette = "Set1", domain = airbnbmap$room_type)
       
       leafletProxy("LocationMap", data = airbnbmap) %>%
       
@@ -148,20 +161,27 @@ server <- function(input, output){
       addLegend(position = "topright" , 
                 pal = room_palette, 
                 values = airbnbmap$room_type, 
-                title = "Room_type") 
+                title = "Room_type",
+                group ="Room_type") 
   })
   
-  # Replace layer with locations-------------------------------------------
+  # Replace layer with locations by bed types-------------------------------------------
   observe({
-    airbnbmap <- airbnbInput()
-    leafletProxy("LocationMap", data = airbnbmap) %>%
+      airbnbmap <- airbnbInput()
+      bed_palette<- colorFactor(palette = "Set1", domain = airbnbmap$bed_type)
       
-      clearGroup(group = "Locations") %>%
+      leafletProxy("LocationMap", data = airbnbmap) %>%
+      clearGroup(group = "Bed_type") %>%
       clearControls() %>%
-      
       addAwesomeMarkers(data = airbnbmap,
-                        group = "Locations")
-                      
+                        icon = ~icons[bed_type],
+                        popup = ~url,
+                        group = "Bed_type") %>%
+      addLegend(position = "topright" , 
+                pal = bed_palette, 
+                values = airbnbmap$bed_type, 
+                title = "Bed_type",
+                group = "Bed_type")
   })
   
   #Two reactive information box--------------------------------------------------
